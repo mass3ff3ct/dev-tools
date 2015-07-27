@@ -9,6 +9,7 @@ Optimizer            = require './optimizer/Optimizer'
 purgeSources         = require './optimizer/purgeSources'
 ProjectBuilder       = require './build/ProjectBuilder'
 ServerProcessManager = require './server/ServerProcessManager'
+Analyzer        = require './analyzer/Analyzer'
 
 
 exports.main = ->
@@ -70,6 +71,15 @@ exports.main = ->
         jsMinify: not options.disableJsMinify
         removeSources: !!options.removeSources
       optimizer.run()
+
+
+    stat: (options) ->
+      targetDir = "#{ normalizePathSeparator(process.cwd()) }/#{ options.out }"
+      analyzer = new Analyzer(targetDir)
+      if options.single
+        analyzer.one(options.single)
+      else
+        analyzer.all()
 
 
     purgeOptimizedSources: (options) ->

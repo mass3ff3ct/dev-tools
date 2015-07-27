@@ -90,6 +90,14 @@ exports.run = (actionCallbacks) ->
     .action(actionCallbacks.optimize)
 
   program
+    .command('stat')
+    .description('create dependencies list for main widgets')
+    .option('-o, --out <dir>', 'output (target) directory relative to project root. defaults to "' +
+                               DEFAULT_OUTPUT_DIR + '"', DEFAULT_OUTPUT_DIR)
+    .option('-s, --single <name>', 'show all dependencies for single class')
+    .action(actionCallbacks.stat)
+
+  program
     .command('purgeOptimizedSources')
     .description('remove source js- and css-files that has been merged into groups and obfuscated')
     .option('-o, --out <dir>', 'output (target) directory relative to project root. defaults to "' +
