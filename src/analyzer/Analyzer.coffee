@@ -58,7 +58,7 @@ class Analyzer
 
   _one: (name) ->
     Scanner.scan(name).then (scanned) ->
-      scanned.dependencies
+      scanned.dependencies.sort()
 
 
   _prepareDataForServiceManager: (data) ->
