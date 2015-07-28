@@ -29,7 +29,7 @@ applicationGlobal =
 global.CORD_PROFILER_ENABLED = false
 global.CORD_IS_BROWSER = true
 
-findServiceContainerExpr = /\.container\.(?:get(?:Service)?)\(\'([a-zA-Z]+)\'\)/g
+findServiceContainerExpr = /\.serviceContainer\.(?:get(?:Service)?)\(\'([a-zA-Z]+)\'\)/g
 
 _define = (dependencies, callback) ->
   if not callback
@@ -93,7 +93,6 @@ class Scanner
         [dependencies, definitionCallback] = (new Function('define, global', @sourceContent))(_define, applicationGlobal)
         @resolveDependencies(dependencies, definitionCallback)
       .then =>
-        #console.log "#{@destination}": _.uniq(@dependencies)
         _.object(['dependencies', 'definition'], [_.uniq(@dependencies), @definition])
 
 
@@ -107,10 +106,9 @@ class Scanner
 
       @dependencies.push(@destination)
       @definition = definitionCallback.apply(null, definitionArguments)
-
+      storage.set(@destination, _.object(['dependencies', 'definition'], [@dependencies, @definition]), @context)
       @getServiceDependencies()
     .then =>
-      storage.set(@destination, _.object(['dependencies', 'definition'], [@dependencies, @definition]), @context)
       (new WidgetScanner(this)).run() if @type == 'widget'
 
 
@@ -127,6 +125,12 @@ class Scanner
     services = services.concat(matched)
     for service in _.uniq(services)
       items = items.concat(ServiceManager.get(service))
+
+    if @destination == 'bundles/cord/core/services/Logger'
+      # Избегаем рекурсии
+      index = items.indexOf('cord!ServiceContainer')
+      items.splice(index, 1) if index != -1
+
     promises = _.map(_.uniq(items), (dependency) -> Scanner.scan(dependency, undefined, context))
     Future.all(promises).then (scanned) =>
       @dependencies = @dependencies.concat(item.dependencies) for item in scanned

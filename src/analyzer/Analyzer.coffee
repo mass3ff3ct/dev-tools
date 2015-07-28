@@ -43,7 +43,7 @@ class Analyzer
       Future.call(fs.writeFile, fileName, JSON.stringify(result, null, 2)).then ->
         console.log "create analyzed file #{fileName}"
     .catch (error) ->
-      console.error error
+      console.error error, error.stack
 
 
   one: (name) ->

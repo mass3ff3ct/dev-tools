@@ -15,7 +15,7 @@ class ServiceManager
 
   constructor: ->
     @data =
-      container:
+      serviceContainer:
         dependencies: ['cord!ServiceContainer']
         services: []
       fallback:
