@@ -24,6 +24,8 @@ class Analyzer
       for config, index in configs
         bundle = bundles[index]
         appHelper.setBundleConfig(bundle, config)
+
+        # Собираем все виджеты из конфига, минуя системный бандл cord/core
         for id, definition of config.routes when definition.widget and bundle != 'cord/core'
           widgets.push("cord-w!#{definition.widget}@/#{bundle}")
 
@@ -34,11 +36,21 @@ class Analyzer
 
 
   all: ->
+    ###
+    Получение списка зависимостей каждого корневого виджета с последующим их сохранением в файл
+    ###
     @init().then =>
       promises = (@_one(widget) for widget in @widgets)
       Future.all(promises)
-    .then (dependenciesList) =>
-      result = _.object(@widgets, dependenciesList)
+    .then (groupList) =>
+      # Получим пути всех конфигов, для добавления их в зависимости
+      configPaths = for bundle in appHelper.getBundles()
+        configPathInfo = appHelper.normalizePath("cord!/#{ bundle }/config")
+        configPathInfo.dest
+
+      groupList = _.map(groupList, (group) -> group.concat(configPaths))
+      result = _.object(@widgets, groupList)
+
       fileName = "#{@targetDir}/analyze-result.json"
       Future.call(fs.writeFile, fileName, JSON.stringify(result, null, 2)).then ->
         console.log "create analyzed file #{fileName}"
@@ -47,6 +59,10 @@ class Analyzer
 
 
   one: (name) ->
+    ###
+    Получение списка зависимостей указанного класса с последующим их выводом в консоль
+    @param String name путь до класса (например: "cord!Future@cord/core")
+    ###
     @init().then =>
       @_one(name)
     .then (dependencies) =>
@@ -57,11 +73,20 @@ class Analyzer
 
 
   _one: (name) ->
+    ###
+    Private method
+    Получение списка зависимостей указанного класса
+    @param String name путь до класа
+    @return Future
+    ###
     Scanner.scan(name).then (scanned) ->
       scanned.dependencies.sort()
 
 
   _prepareDataForServiceManager: (data) ->
+    ###
+    Подготавливает переданные настройки для сервисов
+    ###
     data = _.extend(data, data[':browser']) if data[':browser']
     delete data[':browser']
     delete data[':server']
@@ -69,6 +94,9 @@ class Analyzer
 
 
   _prepareDataForVendorManager: (data) ->
+    ###
+    Подготавливает переданные настройки для вендоров
+    ###
     {paths, shim} = data
     shortNames = {}
     result = {}
@@ -79,6 +107,7 @@ class Analyzer
       shortNames[path.basename(destination)] = id
 
     for id, params of shim when params.deps
+      # Иногда в shim, вместо paths, определяют вендор. Надо быть к этому готовым
       if not result[id] and id.indexOf('vendor/') == 0
         result[id] = destination: id
       else if shortNames[id]

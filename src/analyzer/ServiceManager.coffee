@@ -2,6 +2,7 @@ _ =  require('underscore')
 
 emptyCallback = () ->
 
+# псевдосимуляции require
 requireEmulate = (deps) -> deps
 
 getFunctionBody = (func) ->

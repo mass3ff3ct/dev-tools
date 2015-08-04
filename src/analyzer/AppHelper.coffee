@@ -43,6 +43,11 @@ class AppHelper
 
 
   fileExists: (filePath) ->
+    ###
+    Проверяет доступ к файлу
+    @param String filePath путь к файлу
+    @return Boolean
+    ###
     try
       not fs.accessSync(filePath, fs.R_OK)
     catch
@@ -83,6 +88,9 @@ class AppHelper
     if relativeFilePath.charAt(0) == '/'
       relativeFilePath = relativeFilePath.substr(0)
 
+    if relativeFilePath == 'app/application'
+      mapInfo.prefix = 'cord'
+
     storage[source] =
       dest: relativeFilePath
       type: prefixTypes[mapInfo.prefix]
@@ -90,16 +98,27 @@ class AppHelper
 
   getBundles: ->
     ###
-    @return Array список доступных бандлов приложения
+    Получение списка доступных бандлов приложения
+    @return Array
     ###
     @_applicationBundles
 
 
   getBundleConfig: (bundle) ->
+    ###
+    Получение конфигурации для указанного бандла
+    @param String bundle - название бандла
+    @return Object
+    ###
     if bundleConfigs[bundle] then bundleConfigs[bundle] else null
 
 
   setBundleConfig: (bundle, config) ->
+    ###
+    Установка конфигурации указанного бандла
+    @param String bundle название бандла
+    @param Object config конфигурация
+    ###
     bundleConfigs[bundle] = config
 
 

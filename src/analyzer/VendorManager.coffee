@@ -1,5 +1,6 @@
 _ = require('underscore')
 
+# объект - пустышка
 godObject =
   prototype: {}
   makeBase: ->
@@ -28,7 +29,7 @@ class VendorManager
     return storage[id] if storage[id]
 
     dependencies = []
-    dependencies = [vendor.destination]
+    dependencies = [id]
     dependencies = dependencies.concat(@get(vendorId)) for vendorId in vendor.vendors
     storage[id] = dependencies
 
